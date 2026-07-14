@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LITFITS — Never guess your outfit again.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F3ED;
+    --paper-2:#EFE6D8;
+    --ink:#241C1A;
+    --wine:#7A2E3A;
+    --wine-dark:#5E2129;
+    --gold:#C9A227;
+    --taupe:#8C8378;
+    --sage:#4B6650;
+    --line: rgba(36,28,26,0.16);
+    --display: 'Fraunces', serif;
+    --body: 'Inter', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --radius: 3px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:var(--display); margin:0; font-weight:600; }
+  p{ margin:0; }
+  button{ font-family:inherit; cursor:pointer; }
+  select, input{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--wine); outline-offset:2px; }
+  .mono{ font-family:var(--mono); text-transform:uppercase; letter-spacing:0.08em; }
+  .wrap{ max-width:1120px; margin:0 auto; padding:0 32px; }
+  @media (max-width:640px){ .wrap{ padding:0 20px; } }
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(247,243,237,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav .wrap{
+    display:grid; grid-template-columns:1fr auto 1fr;
+    align-items:center; padding-top:16px; padding-bottom:16px;
+  }
+  .nav-side{ display:flex; align-items:center; }
+  .nav-side.right{ justify-content:flex-end; }
+  .nav-side .tag{ font-size:0.66rem; color:var(--taupe); }
+
+  .logo{ display:flex; flex-direction:column; align-items:center; gap:2px; justify-self:center; }
+  .logo .name{
+    font-family:var(--display); font-size:1.6rem; font-weight:600; letter-spacing:0.03em;
+    cursor:default;
+  }
+  .logo .name .letter{
+    display:inline-block; will-change:transform;
+    transition:transform 0.35s cubic-bezier(.2,.8,.2,1), color 0.35s ease;
+  }
+  .nav-cta{
+    background:var(--wine); color:var(--paper); border:none; border-radius:var(--radius);
+    padding:10px 18px; font-size:0.72rem; font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase;
+    transition:background 0.15s ease;
+  }
+  .nav-cta:hover{ background:var(--wine-dark); }
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:72px 0 88px; border-bottom:1px solid var(--line); }
+  .hero .wrap{ display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:center; }
+  @media (max-width:860px){ .hero .wrap{ grid-template-columns:1fr; } }
+
+  .eyebrow-mini{ font-size:0.7rem; color:var(--wine); margin-bottom:18px; display:inline-block; }
+  .hero h1{
+    font-size:clamp(2.3rem, 4.6vw, 3.6rem);
+    line-height:1.06; letter-spacing:-0.01em;
+    cursor:default;
+  }
+  .hero h1 em{ font-style:italic; color:var(--wine); }
+  .letter{
+    display:inline-block;
+    will-change:transform, color;
+    transition:transform 0.35s cubic-bezier(.2,.8,.2,1), color 0.35s ease;
+  }
+  .letter.em-word{ font-style:italic; }
+  .hero p.sub{
+    margin-top:22px; max-width:46ch; color:#4A403C; font-size:1.05rem; line-height:1.6;
+  }
+  .hero-actions{ margin-top:32px; display:flex; gap:14px; flex-wrap:wrap; }
+  .btn-primary{
+    background:var(--ink); color:var(--paper); border:none; border-radius:var(--radius);
+    padding:14px 26px; font-size:0.78rem; font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase;
+    transition:transform 0.15s ease, background 0.15s ease;
+  }
+  .btn-primary:hover{ background:var(--wine); transform:translateY(-1px); }
+  .btn-secondary{
+    background:transparent; color:var(--ink); border:1px solid var(--ink); border-radius:var(--radius);
+    padding:14px 26px; font-size:0.78rem; font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .btn-secondary:hover{ background:var(--ink); color:var(--paper); }
+
+  /* hero swing-tag visual */
+  .tagstack{ position:relative; height:340px; }
+  .swing{
+    position:absolute; width:198px; background:var(--paper-2);
+    border:1px dashed rgba(36,28,26,0.35); border-radius:6px;
+    padding:22px 18px 18px; box-shadow:0 12px 24px -14px rgba(36,28,26,0.35);
+    --tx:0px; --ty:0px; --rot:0deg;
+    transform:rotate(var(--rot)) translate(var(--tx), var(--ty));
+    transition:transform 0.4s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease;
+  }
+  .swing::before{
+    content:""; position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    width:11px; height:11px; border-radius:50%; background:var(--paper);
+    border:2px solid var(--ink);
+  }
+  .swing .code{ font-size:0.62rem; color:var(--taupe); }
+  .swing .title{ font-family:var(--display); font-size:1.05rem; margin-top:10px; }
+  .swing .meta{ font-size:0.62rem; color:var(--wine); margin-top:8px; }
+  .swing.s1{ top:0; left:10%; --rot:-6deg; z-index:1; }
+  .swing.s2{ top:70px; left:38%; --rot:4deg; z-index:2; background:var(--paper); }
+  .swing.s3{ top:150px; left:6%; --rot:-2deg; z-index:3; }
+  .swing:hover{ box-shadow:0 18px 30px -14px rgba(36,28,26,0.45); }
+  @media (max-width:860px){ .tagstack{ height:260px; } .swing{ width:170px; } }
+
+  /* ---------- STEP SECTIONS ---------- */
+  .step{ padding:64px 0; border-bottom:1px solid var(--line); }
+  .step-head{ display:flex; align-items:baseline; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:36px; }
+  .step-eyebrow{ font-size:0.7rem; color:var(--wine); }
+  .step h2{ font-size:clamp(1.6rem,3vw,2.1rem); margin-top:6px; }
+  .step-note{ font-size:0.88rem; color:var(--taupe); max-width:32ch; }
+
+  /* occasion grid */
+  .occasion-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:14px; }
+  .occasion-card{
+    text-align:left; background:var(--paper-2); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 18px 16px; transition:border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+    position:relative;
+  }
+  .occasion-card:hover{ transform:translateY(-2px); border-color:var(--taupe); }
+  .occasion-card.selected{ border-color:var(--wine); background:#F3E7E8; }
+  .occasion-card.selected::after{
+    content:"✓"; position:absolute; top:14px; right:14px; color:var(--wine); font-size:0.85rem;
+  }
+  .occasion-card .name{ font-weight:600; font-size:1rem; }
+  .occasion-card .level{ display:block; font-size:0.62rem; color:var(--wine); margin-top:8px; }
+  .occasion-card .desc{ display:block; font-size:0.8rem; color:var(--taupe); margin-top:6px; }
+
+  /* wardrobe step */
+  .wardrobe-layout{ display:grid; grid-template-columns:0.9fr 1.1fr; gap:40px; }
+  @media (max-width:860px){ .wardrobe-layout{ grid-template-columns:1fr; } }
+
+  .form-card{ background:var(--paper-2); border:1px solid var(--line); border-radius:var(--radius); padding:24px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:0.68rem; color:var(--taupe); margin-bottom:6px; }
+  .field select, .field input{
+    width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--paper); color:var(--ink); font-size:0.9rem;
+  }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-actions{ display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; }
+  .btn-add{
+    background:var(--wine); color:var(--paper); border:none; border-radius:var(--radius);
+    padding:12px 20px; font-size:0.75rem; font-family:var(--mono); letter-spacing:0.06em; text-transform:uppercase;
+    flex:1;
+  }
+  .btn-add:hover{ background:var(--wine-dark); }
+  .btn-ghost{
+    background:transparent; border:1px solid var(--line); color:var(--ink); border-radius:var(--radius);
+    padding:12px 16px; font-size:0.72rem; font-family:var(--mono); letter-spacing:0.05em; text-transform:uppercase;
+  }
+  .btn-ghost:hover{ border-color:var(--ink); }
+
+  .wardrobe-list{ min-height:120px; }
+  .cat-group{ margin-bottom:22px; }
+  .cat-group:last-child{ margin-bottom:0; }
+  .cat-title{ font-size:0.66rem; color:var(--wine); margin-bottom:10px; }
+  .item-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 4px; border-bottom:1px solid var(--line);
+  }
+  .item-row:last-child{ border-bottom:none; }
+  .item-left{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .dot{ width:12px; height:12px; border-radius:50%; flex-shrink:0; border:1px solid rgba(0,0,0,0.15); }
+  .item-name{ font-size:0.9rem; }
+  .item-formality{ font-size:0.62rem; color:var(--taupe); }
+  .item-remove{
+    background:none; border:none; color:var(--taupe); font-size:1rem; line-height:1; padding:4px 6px;
+  }
+  .item-remove:hover{ color:var(--wine); }
+  .empty-wardrobe{ font-size:0.85rem; color:var(--taupe); padding:16px 4px; }
+
+  /* results */
+  .result-cta{ display:flex; align-items:center; gap:16px; margin-bottom:32px; flex-wrap:wrap; }
+  .results-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:26px; }
+  .tag-card{
+    background:var(--paper-2); border:1px dashed rgba(36,28,26,0.35); border-radius:8px;
+    padding:26px 20px 20px; position:relative;
+  }
+  .tag-card::before{
+    content:""; position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    width:12px; height:12px; border-radius:50%; background:var(--paper);
+    border:2px solid var(--ink);
+  }
+  .tag-card:nth-child(1){ transform:rotate(-1.2deg); }
+  .tag-card:nth-child(2){ transform:rotate(0.8deg); }
+  .tag-card:nth-child(3){ transform:rotate(-0.4deg); }
+  .tag-card .code{ font-size:0.62rem; color:var(--taupe); text-align:right; }
+  .tag-card .fit-score{ font-size:0.66rem; color:var(--wine); margin:14px 0 16px; }
+  .outfit-item{ display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); }
+  .outfit-item:last-child{ border-bottom:none; }
+  .outfit-item .cat{ font-size:0.58rem; color:var(--taupe); width:74px; flex-shrink:0; }
+  .outfit-item .name{ font-size:0.86rem; }
+  .empty-results{
+    text-align:center; padding:40px 20px; border:1px dashed var(--line); border-radius:var(--radius);
+    color:var(--taupe); font-size:0.9rem; max-width:52ch; margin:0 auto;
+  }
+
+  footer{ padding:36px 0; }
+  footer .wrap{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  footer .name{ font-family:var(--display); font-size:1.05rem; }
+  footer .line{ font-size:0.7rem; color:var(--taupe); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <div class="nav-side left">
+      <span class="tag mono">Wardrobe Intelligence</span>
+    </div>
+    <div class="logo">
+      <span class="name" id="navLogo">LITFITS</span>
+    </div>
+    <div class="nav-side right">
+      <button class="nav-cta" onclick="document.getElementById('step1').scrollIntoView()">Start Styling</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow-mini mono">Fashion Consultation</span>
+      <h1 id="heroTitle" aria-label="Never guess your outfit again.">Never guess your <em>outfit</em> again.</h1>
+      <p class="sub">LITFITS turns the clothes you already own into outfits worth wearing. Pick an occasion, log what's hanging in your closet, and get outfit pairings built from your own wardrobe — not a shopping list.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="document.getElementById('step1').scrollIntoView()">Start styling</button>
+        <button class="btn-secondary" onclick="loadExample()">Try with a sample closet</button>
+      </div>
+    </div>
+    <div class="tagstack" aria-hidden="true">
+      <div class="swing s1"><span class="code mono">LF—014</span><div class="title">Date Night</div><span class="meta mono">Smart Casual</span></div>
+      <div class="swing s2"><span class="code mono">LF—002</span><div class="title">Job Interview</div><span class="meta mono">Formal</span></div>
+      <div class="swing s3"><span class="code mono">LF—031</span><div class="title">Weekend</div><span class="meta mono">Casual</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- STEP 1: OCCASION -->
+  <section class="step" id="step1">
+    <div class="wrap">
+      <div class="step-head">
+        <div>
+          <span class="step-eyebrow mono">Step 01 — Occasion</span>
+          <h2>What's the occasion?</h2>
+        </div>
+        <p class="step-note">This sets the formality target LITFITS styles toward.</p>
+      </div>
+      <div class="occasion-grid" id="occasionGrid"></div>
+    </div>
+  </section>
+
+  <!-- STEP 2: WARDROBE -->
+  <section class="step" id="step2">
+    <div class="wrap">
+      <div class="step-head">
+        <div>
+          <span class="step-eyebrow mono">Step 02 — Wardrobe</span>
+          <h2>Add what's in your closet</h2>
+        </div>
+        <p class="step-note">Log a few tops, bottoms, shoes and extras — the more you add, the better the pairings.</p>
+      </div>
+
+      <div class="wardrobe-layout">
+        <div class="form-card">
+          <form id="itemForm">
+            <div class="field">
+              <label for="itemCategory">Category</label>
+              <select id="itemCategory">
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+                <option value="dress">Dress / Jumpsuit</option>
+                <option value="outerwear">Outerwear</option>
+                <option value="shoes">Shoes</option>
+                <option value="accessory">Accessory</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="itemName">Item name</label>
+              <input id="itemName" type="text" placeholder="e.g. Navy Tailored Trousers" required>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="itemColor">Colour</label>
+                <select id="itemColor">
+                  <option>Black</option><option>White</option><option>Grey</option>
+                  <option>Navy</option><option>Beige</option><option>Brown</option>
+                  <option>Blue</option><option>Red</option><option>Green</option>
+                  <option>Pink</option><option>Yellow</option><option>Purple</option>
+                  <option>Multicolor</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="itemFormality">Formality</label>
+                <select id="itemFormality">
+                  <option value="1">Casual</option>
+                  <option value="2">Smart Casual</option>
+                  <option value="3">Formal</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-add">Add to closet</button>
+              <button type="button" class="btn-ghost" onclick="loadExample()">Use sample closet</button>
+              <button type="button" class="btn-ghost" onclick="clearWardrobe()">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="wardrobe-list" id="wardrobeList">
+          <p class="empty-wardrobe">Your closet is empty. Add a few pieces, or try the sample closet to see LITFITS in action.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3: RESULTS -->
+  <section class="step" id="step3" style="border-bottom:none;">
+    <div class="wrap">
+      <div class="step-head">
+        <div>
+          <span class="step-eyebrow mono">Step 03 — Your Fits</span>
+          <h2>Outfits built for the moment</h2>
+        </div>
+        <p class="step-note">Ranked by formality fit and colour coordination from your own closet.</p>
+      </div>
+
+      <div class="result-cta">
+        <button class="btn-primary" onclick="renderOutfits()">Show my outfits</button>
+        <span class="mono" style="font-size:0.7rem;color:var(--taupe);" id="statusLine"></span>
+      </div>
+
+      <div class="results-grid" id="resultsGrid">
+        <div class="empty-results">No fits yet. Choose an occasion above and add at least a top, a bottom and a pair of shoes — or a dress and shoes — to see suggestions here.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="name">LITFITS</span>
+    <span class="line mono">Never guess your outfit again.</span>
+  </div>
+</footer>
+
+<script>
+  /* ---------------- DATA ---------------- */
+  const OCCASIONS = [
+    {id:'work', name:'Work Day', level:2, desc:'Office-ready, sharp not stiff'},
+    {id:'interview', name:'Job Interview', level:3, desc:'Formal, first-impression polish'},
+    {id:'date', name:'Date Night', level:2, desc:'Smart casual, put together'},
+    {id:'wedding', name:'Wedding Guest', level:3, desc:'Formal, celebration-ready'},
+    {id:'hangout', name:'Casual Hangout', level:1, desc:'Relaxed, everyday comfort'},
+    {id:'party', name:'Night Out', level:2, desc:'Statement pieces, a little bold'},
+    {id:'travel', name:'Travel Day', level:1, desc:'Comfortable, easy layers'},
+    {id:'brunch', name:'Weekend Brunch', level:1, desc:'Easygoing, still pulled together'},
+  ];
+  const LEVEL_LABEL = {1:'Casual', 2:'Smart Casual', 3:'Formal'};
+  const CAT_LABEL = {top:'Top', bottom:'Bottom', dress:'Dress', outerwear:'Outerwear', shoes:'Shoes', accessory:'Accessory'};
+  const COLOR_HEX = {
+    Black:'#161311', White:'#FBF9F4', Grey:'#9B958C', Navy:'#1F2A44', Beige:'#D9C7A6',
+    Brown:'#6B4A34', Blue:'#2F5DA8', Red:'#A9403E', Green:'#3F6B4E', Pink:'#D98FA3',
+    Yellow:'#C9A227', Purple:'#6C4A85',
+    Multicolor:'linear-gradient(135deg,#A9403E,#2F5DA8,#C9A227)'
+  };
+  const NEUTRALS = ['Black','White','Grey','Navy','Beige','Brown'];
+  const PAIRS = [['Blue','Brown'],['Blue','Yellow'],['Green','Beige'],['Pink','Grey'],['Purple','Grey'],
+                 ['Red','Navy'],['Green','Navy'],['Yellow','Navy'],['Pink','Navy'],['Red','Beige'],
+                 ['Yellow','Beige'],['Purple','Beige']];
+
+  let wardrobe = [];
+  let itemId = 0;
+  let selectedOccasion = null;
+
+  /* ---------------- OCCASION UI ---------------- */
+  const occasionGrid = document.getElementById('occasionGrid');
+  OCCASIONS.forEach(o=>{
+    const btn = document.createElement('button');
+    btn.className = 'occasion-card';
+    btn.dataset.id = o.id;
+    btn.innerHTML = `<span class="name">${o.name}</span>
+      <span class="level mono">${LEVEL_LABEL[o.level]}</span>
+      <span class="desc">${o.desc}</span>`;
+    btn.addEventListener('click', ()=>{
+      selectedOccasion = o;
+      document.querySelectorAll('.occasion-card').forEach(c=>c.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+    occasionGrid.appendChild(btn);
+  });
+
+  /* ---------------- WARDROBE UI ---------------- */
+  const itemForm = document.getElementById('itemForm');
+  itemForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    const name = document.getElementById('itemName').value.trim();
+    if(!name) return;
+    wardrobe.push({
+      id: itemId++,
+      category: document.getElementById('itemCategory').value,
+      name,
+      color: document.getElementById('itemColor').value,
+      formality: Number(document.getElementById('itemFormality').value)
+    });
+    document.getElementById('itemName').value = '';
+    document.getElementById('itemName').focus();
+    renderWardrobe();
+  });
+
+  function removeItem(id){
+    wardrobe = wardrobe.filter(i=>i.id !== id);
+    renderWardrobe();
+  }
+
+  function clearWardrobe(){
+    wardrobe = [];
+    renderWardrobe();
+  }
+
+  function loadExample(){
+    wardrobe = [
+      {category:'top', name:'White Oxford Shirt', color:'White', formality:2},
+      {category:'top', name:'Black Fitted Tee', color:'Black', formality:1},
+      {category:'top', name:'Silk Cami Blouse', color:'Pink', formality:2},
+      {category:'bottom', name:'Navy Tailored Trousers', color:'Navy', formality:3},
+      {category:'bottom', name:'Blue Denim Jeans', color:'Blue', formality:1},
+      {category:'bottom', name:'Beige Chinos', color:'Beige', formality:2},
+      {category:'outerwear', name:'Charcoal Blazer', color:'Grey', formality:3},
+      {category:'outerwear', name:'Denim Jacket', color:'Blue', formality:1},
+      {category:'shoes', name:'Black Leather Loafers', color:'Black', formality:3},
+      {category:'shoes', name:'White Sneakers', color:'White', formality:1},
+      {category:'shoes', name:'Nude Block Heels', color:'Beige', formality:2},
+      {category:'dress', name:'Emerald Wrap Dress', color:'Green', formality:3},
+      {category:'accessory', name:'Gold Hoop Earrings', color:'Yellow', formality:2},
+      {category:'accessory', name:'Brown Leather Belt', color:'Brown', formality:2},
+    ].map(i=>({...i, id:itemId++}));
+    document.getElementById('step2').scrollIntoView({behavior:'smooth'});
+    renderWardrobe();
+  }
+
+  function renderWardrobe(){
+    const list = document.getElementById('wardrobeList');
+    if(wardrobe.length === 0){
+      list.innerHTML = '<p class="empty-wardrobe">Your closet is empty. Add a few pieces, or try the sample closet to see LITFITS in action.</p>';
+      return;
+    }
+    const cats = ['top','bottom','dress','outerwear','shoes','accessory'];
+    list.innerHTML = cats.map(cat=>{
+      const items = wardrobe.filter(i=>i.category===cat);
+      if(items.length === 0) return '';
+      const rows = items.map(i=>`
+        <div class="item-row">
+          <div class="item-left">
+            <span class="dot" style="background:${COLOR_HEX[i.color]}"></span>
+            <span class="item-name">${i.name}</span>
+          </div>
+          <div class="item-left">
+            <span class="item-formality mono">${LEVEL_LABEL[i.formality]}</span>
+            <button class="item-remove" aria-label="Remove ${i.name}" onclick="removeItem(${i.id})">×</button>
+          </div>
+        </div>`).join('');
+      return `<div class="cat-group"><div class="cat-title mono">${CAT_LABEL[cat]}</div>${rows}</div>`;
+    }).join('');
+  }
+
+  /* ---------------- OUTFIT ENGINE ---------------- */
+  function colorScore(a,b){
+    if(a===b) return 1;
+    if(NEUTRALS.includes(a) || NEUTRALS.includes(b) || a==='Multicolor' || b==='Multicolor') return 0.9;
+    const match = PAIRS.some(p=> (p[0]===a && p[1]===b) || (p[0]===b && p[1]===a));
+    return match ? 0.8 : 0.35;
+  }
+
+  function byCategoryFiltered(cat, target){
+    return wardrobe.filter(i => i.category===cat && Math.abs(i.formality-target) <= 1);
+  }
+
+  function generateOutfits(target){
+    const tops = byCategoryFiltered('top', target);
+    const bottoms = byCategoryFiltered('bottom', target);
+    const shoes = byCategoryFiltered('shoes', target);
+    const outer = byCategoryFiltered('outerwear', target);
+    const acc = byCategoryFiltered('accessory', target);
+    const dresses = byCategoryFiltered('dress', target);
+
+    let combos = [];
+
+    // dress-based outfits
+    dresses.forEach(d=>{
+      shoes.forEach(s=>{
+        let formalityCloseness = 2 - (Math.abs(d.formality-target)+Math.abs(s.formality-target))/2;
+        let cScore = colorScore(d.color, s.color);
+        let items = [d, s];
+        let score = formalityCloseness + cScore;
+        if(outer.length && target>=2){
+          let best = outer.reduce((b,o)=>{
+            let sc = colorScore(d.color,o.color) + (2-Math.abs(o.formality-target));
+            return (!b || sc>b.sc) ? {o,sc} : b;
+          }, null);
+          if(best && best.sc>1.2){ items.push(best.o); score += 0.3; }
+        }
+        if(acc.length){
+          let best = acc.reduce((b,a)=>{
+            let sc = colorScore(d.color,a.color);
+            return (!b || sc>b.sc) ? {a,sc} : b;
+          }, null);
+          if(best && best.sc>=0.8){ items.push(best.a); score += 0.2; }
+        }
+        combos.push({items, score});
+      });
+    });
+
+    // top + bottom outfits
+    tops.forEach(t=>{
+      bottoms.forEach(b=>{
+        if(!shoes.length) return;
+        let formalityCloseness = 2 - (Math.abs(t.formality-target)+Math.abs(b.formality-target))/2;
+        let cScore = colorScore(t.color, b.color);
+        let bestShoe = shoes.reduce((best,s)=>{
+          let sc = colorScore(t.color,s.color)*0.6 + colorScore(b.color,s.color)*0.4 + (2-Math.abs(s.formality-target))*0.3;
+          return (!best || sc>best.sc) ? {s,sc} : best;
+        }, null);
+        let items = [t, b, bestShoe.s];
+        let score = formalityCloseness + cScore + bestShoe.sc*0.5;
+        if(outer.length && target>=2){
+          let best = outer.reduce((bb,o)=>{
+            let sc = colorScore(t.color,o.color) + (2-Math.abs(o.formality-target));
+            return (!bb || sc>bb.sc) ? {o,sc} : bb;
+          }, null);
+          if(best && best.sc>1.2){ items.push(best.o); score += 0.3; }
+        }
+        if(acc.length){
+          let best = acc.reduce((bb,a)=>{
+            let sc = colorScore(t.color,a.color);
+            return (!bb || sc>bb.sc) ? {a,sc} : bb;
+          }, null);
+          if(best && best.sc>=0.8){ items.push(best.a); score += 0.2; }
+        }
+        combos.push({items, score});
+      });
+    });
+
+    combos.sort((a,b)=>b.score-a.score);
+
+    // diversity filter so results aren't near-duplicates
+    let results = [];
+    for(const c of combos){
+      const tooSimilar = results.some(r=>{
+        const shared = r.items.filter(ri => c.items.some(ci=>ci.id===ri.id)).length;
+        return shared >= Math.min(r.items.length, c.items.length);
+      });
+      if(tooSimilar) continue;
+      results.push(c);
+      if(results.length >= 3) break;
+    }
+    return results;
+  }
+
+  function scoreLabel(score){
+    if(score >= 2.6) return 'Strong match';
+    if(score >= 1.8) return 'Good match';
+    return 'Creative pairing';
+  }
+
+  function renderOutfits(){
+    const grid = document.getElementById('resultsGrid');
+    const status = document.getElementById('statusLine');
+
+    if(!selectedOccasion){
+      grid.innerHTML = '<div class="empty-results">Pick an occasion in Step 01 first — LITFITS styles differently for a job interview than for a weekend brunch.</div>';
+      status.textContent = '';
+      return;
+    }
+    if(wardrobe.length === 0){
+      grid.innerHTML = '<div class="empty-results">Your closet is empty. Add a few pieces in Step 02, or load the sample closet, then come back here.</div>';
+      status.textContent = '';
+      return;
+    }
+
+    const outfits = generateOutfits(selectedOccasion.level);
+
+    if(outfits.length === 0){
+      grid.innerHTML = `<div class="empty-results">Not enough pieces yet for ${selectedOccasion.name}. Add at least a top, a bottom and shoes — or a dress and shoes — in the right formality range.</div>`;
+      status.textContent = '';
+      return;
+    }
+
+    status.textContent = `Styling for ${selectedOccasion.name}`;
+    grid.innerHTML = outfits.map((o,idx)=>{
+      const rows = o.items.map(i=>`
+        <div class="outfit-item">
+          <span class="cat mono">${CAT_LABEL[i.category]}</span>
+          <span class="dot" style="background:${COLOR_HEX[i.color]}"></span>
+          <span class="name">${i.name}</span>
+        </div>`).join('');
+      const code = 'LF—' + String(idx+1).padStart(3,'0');
+      return `<div class="tag-card">
+        <div class="code mono">${code}</div>
+        <div class="fit-score mono">${scoreLabel(o.score)}</div>
+        ${rows}
+      </div>`;
+    }).join('');
+  }
+
+  /* ---------------- HERO TITLE: cursor-reactive letters ---------------- */
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function splitIntoLetters(el, extraClass){
+    const text = el.textContent;
+    el.innerHTML = [...text].map(ch=>
+      ch === ' ' ? ' ' : `<span class="letter${extraClass ? ' '+extraClass : ''}">${ch}</span>`
+    ).join('');
+  }
+
+  function attachMagnet(containerEl, letterSelector, opts){
+    const letters = containerEl.querySelectorAll(letterSelector);
+    const radius = opts.radius || 90;
+    const lift = opts.lift ?? 10;
+    const scaleUp = opts.scale ?? 0.18;
+    const colorOn = opts.color || false;
+
+    containerEl.addEventListener('mousemove', e=>{
+      letters.forEach(el=>{
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width/2;
+        const cy = r.top + r.height/2;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < radius){
+          const pull = 1 - dist/radius;
+          el.style.transform = `translateY(${-lift*pull}px) scale(${1 + scaleUp*pull})`;
+          if(colorOn) el.style.color = pull > 0.55 ? 'var(--gold)' : '';
+        } else {
+          el.style.transform = '';
+          if(colorOn) el.style.color = '';
+        }
+      });
+    });
+    containerEl.addEventListener('mouseleave', ()=>{
+      letters.forEach(el=>{ el.style.transform = ''; if(colorOn) el.style.color = ''; });
+    });
+  }
+
+  // Hero headline
+  (function(){
+    const h1 = document.getElementById('heroTitle');
+    const nodes = h1.childNodes;
+    let html = '';
+    nodes.forEach(node=>{
+      if(node.nodeType === Node.TEXT_NODE){
+        html += [...node.textContent].map(ch=>
+          ch === ' ' ? ' ' : `<span class="letter">${ch}</span>`
+        ).join('');
+      } else if(node.nodeName === 'EM'){
+        html += '<em>' + [...node.textContent].map(ch=>
+          ch === ' ' ? ' ' : `<span class="letter em-word">${ch}</span>`
+        ).join('') + '</em>';
+      }
+    });
+    h1.innerHTML = html;
+  })();
+
+  // Nav logo "LITFITS"
+  const navLogo = document.getElementById('navLogo');
+  splitIntoLetters(navLogo);
+
+  if(!reduceMotion){
+    const heroEl = document.querySelector('.hero');
+    attachMagnet(heroEl, '#heroTitle .letter', {radius:90, lift:10, scale:0.18, color:true});
+    attachMagnet(document.querySelector('.nav'), '#navLogo .letter', {radius:60, lift:6, scale:0.22, color:false});
+
+    // gradient shimmer follows cursor across the nav
+    const navEl = document.querySelector('.nav');
+    navEl.addEventListener('mousemove', e=>{
+      const r = navEl.getBoundingClientRect();
+      const pct = ((e.clientX - r.left) / r.width) * 100;
+      navLogo.style.backgroundPosition = `${pct}% center`;
+    });
+    navEl.addEventListener('mouseleave', ()=>{
+      navLogo.style.backgroundPosition = '';
+    });
+
+    // subtle parallax on the swing-tag stack
+    const swings = document.querySelectorAll('.swing');
+    heroEl.addEventListener('mousemove', e=>{
+      const r = heroEl.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      swings.forEach((el,i)=>{
+        const depth = (i+1) * 6;
+        el.style.setProperty('--tx', (px*depth).toFixed(1) + 'px');
+        el.style.setProperty('--ty', (py*depth).toFixed(1) + 'px');
+      });
+    });
+    heroEl.addEventListener('mouseleave', ()=>{
+      swings.forEach(el=>{
+        el.style.setProperty('--tx','0px');
+        el.style.setProperty('--ty','0px');
+      });
+    });
+  }
+</script>
+</body>
+</html>
